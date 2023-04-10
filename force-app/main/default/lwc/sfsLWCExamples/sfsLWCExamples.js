@@ -1,40 +1,86 @@
 import { LightningElement, api, wire } from "lwc";
-import { getRecord } from "lightning/uiRecordApi";
+import { getRecord, getFieldValue, updateRecord } from "lightning/uiRecordApi";
+import APPTID_FIELD from "@salesforce/schema/ServiceAppointment.Id";
+import APPTNUMBER_FIELD from "@salesforce/schema/ServiceAppointment.AppointmentNumber";
+import APPTSUBJECT_FIELD from "@salesforce/schema/ServiceAppointment.Subject";
+import APPTSTATUS_FIELD from "@salesforce/schema/ServiceAppointment.Status";
+import APPTPARENTID_FIELD from "@salesforce/schema/ServiceAppointment.ParentRecordId";
+import WONUMBER_FIELD from "@salesforce/schema/WorkOrder.WorkOrderNumber";
+import WOWORKTYPEID_FIELD from "@salesforce/schema/WorkOrder.WorkTypeId";
 
 export default class SfsLWCExamples extends LightningElement {
   @api recordId;
+  showEdit = false;
+  apptStatusSelected = "";
 
   @wire(getRecord, {
     recordId: "$recordId",
     fields: [
-      "ServiceAppointment.AppointmentNumber",
-      "ServiceAppointment.Subject",
-      "ServiceAppointment.ParentRecordId"
+      APPTNUMBER_FIELD,
+      APPTSUBJECT_FIELD,
+      APPTSTATUS_FIELD,
+      APPTPARENTID_FIELD
     ]
   })
   serviceAppt;
 
   get apptNumber() {
-    console.log(this.serviceAppt);
-    return this.serviceAppt?.data?.fields?.AppointmentNumber?.value;
+    return getFieldValue(this.serviceAppt?.data, APPTNUMBER_FIELD);
   }
 
   get apptSubject() {
-    return this.serviceAppt?.data?.fields?.Subject?.value;
+    return getFieldValue(this.serviceAppt?.data, APPTSUBJECT_FIELD);
+  }
+
+  get apptStatus() {
+    return getFieldValue(this.serviceAppt?.data, APPTSTATUS_FIELD);
+  }
+
+  get apptStatusOptions() {
+    return [
+      { label: "Dispatched", value: "Dispatched" },
+      { label: "In Progress", value: "In Progress" },
+      { label: "Complete", value: "Complete" },
+      { label: "Cannot Complete", value: "Cannot Complete" }
+    ];
+  }
+
+  selectApptStatus(event) {
+    this.apptStatusSelected = event.detail.value;
   }
 
   get apptParRecId() {
-    return this.serviceAppt?.data?.fields?.ParentRecordId?.value;
+    return getFieldValue(this.serviceAppt?.data, APPTPARENTID_FIELD);
   }
 
   @wire(getRecord, {
     recordId: "$apptParRecId",
-    fields: ["WorkOrder.WorkOrderNumber", "WorkOrder.WorkTypeId"]
+    fields: [WONUMBER_FIELD, WOWORKTYPEID_FIELD]
   })
   workOrder;
 
   get woNumber() {
-    console.log(this.workOrder);
-    return this.workOrder?.data?.fields?.WorkOrderNumber?.value;
+    return getFieldValue(this.workOrder?.data, WONUMBER_FIELD);
+  }
+
+  editAppt() {
+    this.showEdit = true;
+  }
+
+  saveAppt() {
+    const fields = {};
+    fields[APPTID_FIELD.fieldApiName] = this.recordId;
+    fields[APPTSUBJECT_FIELD.fieldApiName] = this.template.querySelector(
+      "[data-field='Subject']"
+    ).value;
+    if (this.apptStatusSelected) {
+      fields[APPTSTATUS_FIELD.fieldApiName] = this.apptStatusSelected;
+      this.apptStatusSelected = "";
+    }
+    const recordInput = { fields };
+    updateRecord(recordInput).then(() => {
+      this.showEdit = false;
+      return refreshApex(this.serviceAppt);
+    });
   }
 }
