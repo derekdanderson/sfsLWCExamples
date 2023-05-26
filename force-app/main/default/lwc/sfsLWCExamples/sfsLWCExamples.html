@@ -38,6 +38,18 @@
       <p class="slds-p-horizontal_small">Status: {apptStatus}</p>
       <p class="slds-p-horizontal_small">Parent Record ID: {apptParRecId}</p>
       <p class="slds-p-horizontal_small">Work Order Number: {woNumber}</p>
+      <template lwc:if={assignedResources}>
+        <div class="slds-m-around_medium">
+          <template for:each={assignedResources} for:item="ar">
+            <p key={ar.fields.Id.value}>
+              {ar.fields.ServiceResourceName__c.value} -
+              {ar.fields.EstimatedTravelTime.value} min travel time to
+              appointment
+            </p>
+          </template>
+        </div>
+      </template>
+
       <div slot="footer">
         <lightning-button
           variant="brand"

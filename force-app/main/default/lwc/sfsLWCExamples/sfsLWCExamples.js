@@ -1,5 +1,6 @@
 import { LightningElement, api, wire } from "lwc";
 import { getRecord, getFieldValue, updateRecord } from "lightning/uiRecordApi";
+import { getRelatedListRecords } from "lightning/uiRelatedListApi";
 import APPTID_FIELD from "@salesforce/schema/ServiceAppointment.Id";
 import APPTNUMBER_FIELD from "@salesforce/schema/ServiceAppointment.AppointmentNumber";
 import APPTSUBJECT_FIELD from "@salesforce/schema/ServiceAppointment.Subject";
@@ -12,6 +13,7 @@ export default class SfsLWCExamples extends LightningElement {
   @api recordId;
   showEdit = false;
   apptStatusSelected = "";
+  assignedResources;
 
   @wire(getRecord, {
     recordId: "$recordId",
@@ -82,5 +84,21 @@ export default class SfsLWCExamples extends LightningElement {
       this.showEdit = false;
       return refreshApex(this.serviceAppt);
     });
+  }
+
+  @wire(getRelatedListRecords, {
+    parentRecordId: "$recordId",
+    relatedListId: "ServiceResources",
+    fields: [
+      "AssignedResource.Id",
+      "AssignedResource.EstimatedTravelTime",
+      "AssignedResource.ServiceResourceId",
+      "AssignedResource.ServiceResourceName__c"
+    ]
+  })
+  listInfo({ error, data }) {
+    if (data) {
+      this.assignedResources = data.records;
+    }
   }
 }
