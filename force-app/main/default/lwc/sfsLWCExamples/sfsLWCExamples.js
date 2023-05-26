@@ -1,5 +1,10 @@
 import { LightningElement, api, wire } from "lwc";
-import { getRecord, getFieldValue, updateRecord } from "lightning/uiRecordApi";
+import {
+  getRecord,
+  getFieldValue,
+  updateRecord,
+  createRecord
+} from "lightning/uiRecordApi";
 import { getRelatedListRecords } from "lightning/uiRelatedListApi";
 import APPTID_FIELD from "@salesforce/schema/ServiceAppointment.Id";
 import APPTNUMBER_FIELD from "@salesforce/schema/ServiceAppointment.AppointmentNumber";
@@ -8,6 +13,8 @@ import APPTSTATUS_FIELD from "@salesforce/schema/ServiceAppointment.Status";
 import APPTPARENTID_FIELD from "@salesforce/schema/ServiceAppointment.ParentRecordId";
 import WONUMBER_FIELD from "@salesforce/schema/WorkOrder.WorkOrderNumber";
 import WOWORKTYPEID_FIELD from "@salesforce/schema/WorkOrder.WorkTypeId";
+import REFERENCEDATA_OBJECT from "@salesforce/schema/Reference_Data__c";
+import REFERENCEDATANAME_FIELD from "@salesforce/schema/Reference_Data__c.Name";
 
 export default class SfsLWCExamples extends LightningElement {
   @api recordId;
@@ -100,5 +107,13 @@ export default class SfsLWCExamples extends LightningElement {
     if (data) {
       this.assignedResources = data.records;
     }
+  }
+
+  newReferenceData() {
+    const fields = {};
+    fields[REFERENCEDATANAME_FIELD.fieldApiName] =
+      "You just created this reference data";
+    const recordInput = { apiName: REFERENCEDATA_OBJECT.objectApiName, fields };
+    createRecord(recordInput);
   }
 }
