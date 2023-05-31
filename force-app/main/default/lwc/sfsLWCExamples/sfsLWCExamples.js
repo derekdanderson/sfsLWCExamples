@@ -1,4 +1,5 @@
 import { LightningElement, api, wire } from "lwc";
+import { NavigationMixin } from "lightning/navigation";
 import {
   getRecord,
   getFieldValue,
@@ -16,7 +17,7 @@ import WOWORKTYPEID_FIELD from "@salesforce/schema/WorkOrder.WorkTypeId";
 import REFERENCEDATA_OBJECT from "@salesforce/schema/Reference_Data__c";
 import REFERENCEDATANAME_FIELD from "@salesforce/schema/Reference_Data__c.Name";
 
-export default class SfsLWCExamples extends LightningElement {
+export default class SfsLWCExamples extends NavigationMixin(LightningElement) {
   @api recordId;
   showEdit = false;
   apptStatusSelected = "";
@@ -114,6 +115,13 @@ export default class SfsLWCExamples extends LightningElement {
     fields[REFERENCEDATANAME_FIELD.fieldApiName] =
       "You just created this reference data";
     const recordInput = { apiName: REFERENCEDATA_OBJECT.objectApiName, fields };
-    createRecord(recordInput);
+    createRecord(recordInput).then((refData) => {
+      this[NavigationMixin.Navigate]({
+        type: "standard__webPage",
+        attributes: {
+          url: "com.salesforce.fieldservice://v1/sObject/" + refData.id
+        }
+      });
+    });
   }
 }
