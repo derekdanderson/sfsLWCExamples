@@ -1,0 +1,50 @@
+<template>
+  <lightning-card>
+    <h3 slot="title">
+      <lightning-icon
+        icon-name="standard:reference_data__c"
+        size="small"
+      ></lightning-icon>
+      &nbsp; Reference Data {recordId}
+    </h3>
+    <template lwc:if={showEdit}>
+      <lightning-input
+        label="Name"
+        value={referenceDataName}
+        data-field="Name"
+        class="slds-m-bottom_x-small"
+        required
+      ></lightning-input>
+      <lightning-input
+        label="Long Text"
+        value={referenceDataLongText}
+        data-field="Long_Text__c"
+        class="slds-m-bottom_x-small"
+        required
+      ></lightning-input>
+      <div slot="footer">
+        <lightning-button
+          variant="brand"
+          label="Save"
+          title="Save"
+          onclick={saveReferenceData}
+          class="slds-m-left_x-small"
+        ></lightning-button>
+      </div>
+    </template>
+    <template lwc:else>
+      <p class="slds-p-horizontal_small">Name: {referenceDataName}</p>
+      <p class="slds-p-horizontal_small">Long Text: {referenceDataLongText}</p>
+
+      <div slot="footer">
+        <lightning-button
+          variant="brand"
+          label="Edit"
+          title="Edit"
+          onclick={editReferenceData}
+          class="slds-m-left_x-small"
+        ></lightning-button>
+      </div>
+    </template>
+  </lightning-card>
+</template>

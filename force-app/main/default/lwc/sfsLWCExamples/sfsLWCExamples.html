@@ -49,6 +49,16 @@
           </template>
         </div>
       </template>
+      <template lwc:if={arResults}>
+        <div class="slds-m-around_medium">
+          <template for:each={arResults} for:item="ar">
+            <p key={ar.Id}>
+              {ar.ServiceResourceName__c.value} - {ar.EstimatedTravelTime.value}
+              min travel time to appointment
+            </p>
+          </template>
+        </div>
+      </template>
 
       <div slot="footer">
         <lightning-button
@@ -68,4 +78,15 @@
       </div>
     </template>
   </lightning-card>
+  <div class="slds-var-m-top_medium slds-var-p-around_medium container">
+    <lightning-textarea
+      name="output"
+      class="textAreaBody"
+      readonly
+      value={output}
+      variant="label-stacked"
+      label="Output"
+    >
+    </lightning-textarea>
+  </div>
 </template>

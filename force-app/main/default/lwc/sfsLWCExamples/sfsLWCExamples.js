@@ -7,6 +7,7 @@ import {
   createRecord
 } from "lightning/uiRecordApi";
 import { getRelatedListRecords } from "lightning/uiRelatedListApi";
+import { gql, graphql } from "lightning/uiGraphQLApi";
 import APPTID_FIELD from "@salesforce/schema/ServiceAppointment.Id";
 import APPTNUMBER_FIELD from "@salesforce/schema/ServiceAppointment.AppointmentNumber";
 import APPTSUBJECT_FIELD from "@salesforce/schema/ServiceAppointment.Subject";
@@ -16,12 +17,14 @@ import WONUMBER_FIELD from "@salesforce/schema/WorkOrder.WorkOrderNumber";
 import WOWORKTYPEID_FIELD from "@salesforce/schema/WorkOrder.WorkTypeId";
 import REFERENCEDATA_OBJECT from "@salesforce/schema/Reference_Data__c";
 import REFERENCEDATANAME_FIELD from "@salesforce/schema/Reference_Data__c.Name";
+import REFERENCEDATALONGTEXT_FIELD from "@salesforce/schema/Reference_Data__c.Long_Text__c";
 
 export default class SfsLWCExamples extends NavigationMixin(LightningElement) {
   @api recordId;
   showEdit = false;
   apptStatusSelected = "";
   assignedResources;
+  arResults;
 
   @wire(getRecord, {
     recordId: "$recordId",
@@ -110,10 +113,94 @@ export default class SfsLWCExamples extends NavigationMixin(LightningElement) {
     }
   }
 
+  @wire(graphql, {
+    query: gql`
+      query AssignedResourceQuery($thisRecordId: ID) {
+        uiapi {
+          query {
+            AssignedResource(
+              where: { ServiceAppointmentId: { eq: $thisRecordId } }
+            ) {
+              edges {
+                node {
+                  Id
+                  ServiceResourceId {
+                    value
+                  }
+                  ServiceResourceName__c {
+                    value
+                  }
+                  EstimatedTravelTime {
+                    value
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    `,
+    variables: "$arQueryVars"
+  })
+  arQueryResults({ data, errors }) {
+    if (data) {
+      this.addOutput("arQueryResults " + JSON.stringify(data));
+      this.arResults = data.uiapi.query.AssignedResource.edges.map(
+        (edge) => edge.node
+      );
+    }
+    if (errors) {
+      this.handleError("arQueryResults errors", errors);
+    }
+  }
+  get arQueryVars() {
+    return {
+      thisRecordId: this.recordId
+    };
+  }
+
+  // Handle error
+  handleError(func, errors) {
+    this.addOutput("ERROR: " + func + " - " + JSON.stringify(errors));
+  }
+
+  addOutput(msg) {
+    // Create timestamp
+    const now = new Date();
+    const offsetMs = now.getTimezoneOffset() * 60 * 1000;
+    const dateLocal = new Date(now.getTime() - offsetMs);
+    const timestampStr = dateLocal.toISOString();
+    console.log(`${timestampStr} - ${msg}`);
+    this.output = `${timestampStr} - ${msg}\n\n${this.output}`;
+  }
+
   newReferenceData() {
     const fields = {};
     fields[REFERENCEDATANAME_FIELD.fieldApiName] =
       "You just created this reference data";
+    fields[REFERENCEDATALONGTEXT_FIELD.fieldApiName] =
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+      "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
     const recordInput = { apiName: REFERENCEDATA_OBJECT.objectApiName, fields };
     createRecord(recordInput).then((refData) => {
       this[NavigationMixin.Navigate]({
@@ -124,4 +211,6 @@ export default class SfsLWCExamples extends NavigationMixin(LightningElement) {
       });
     });
   }
+}
+
 }
